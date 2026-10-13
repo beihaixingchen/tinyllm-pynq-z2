@@ -42,6 +42,32 @@ no failing endpoints. The optional K/V-parallel variant has passed HLS C
 simulation and Vivado timing signoff, but has **not** completed a board benchmark
 and is not included in the result above.
 
+## Autonomous iteration
+
+GPT-6 Luna autonomously carried out the engineering loop: changing candidate
+RTL/HLS, running C simulation and synthesis, implementing and routing Vivado
+designs, deploying candidates to the board, and checking golden outputs and
+throughput. The user supplied the initial RTL, objective, and operating
+constraints; no person manually edited the optimization candidates, operated
+Vivado, or conducted the board benchmarks.
+
+The optimization took about **one week of autonomous iteration**, based on the
+Vivado/HLS project logs. Later documentation and release work are excluded.
+
+| Milestone | End-to-end board result | What changed |
+| --- | ---: | --- |
+| First autonomous full-model PL prototype | **8.62 tok/s** | Full 128-token generation on PL; 3-run median 14.856 s, with exact generated IDs and per-step argmaxes |
+| Streamed full-model datapath | **190.90 tok/s** | Reworked matrix streaming, II=1 MAC scheduling, and DDR/dataflow behavior; 5-run median 0.67048 s |
+| Parallel FFN and faster PL/HP clock | **203.66 tok/s** | W1/W3 execute concurrently on separate memory ports; PL/HP at 127 MHz, PS at 125 MHz; 5-run median 0.62850 s |
+
+All three milestones use the same 20-token prompt and 128-token generation
+request. The final result is **23.64x** the first autonomous PL result and 6.7%
+above the preceding full-PL design. The first PL version was about 3.25x slower
+than the tuned PS-only reference; the final version is 7.3x faster than it.
+Slower variants and builds that failed routed timing were rejected rather than
+counted as progress. An additional K/V-parallel candidate passed HLS C simulation
+and route signoff, but lacks a valid board benchmark and is excluded.
+
 ## What runs where
 
 ```mermaid
