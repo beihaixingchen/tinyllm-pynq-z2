@@ -1,75 +1,101 @@
-# TinyLLM on PYNQ-Z2
+# TinyLLM, running on a PYNQ-Z2
 
-Run a small Q6 language model on a PYNQ-Z2 board with the autoregressive model
-loop implemented as one programmable-logic (PL) accelerator. The ARM processor
-prepares the request and starts the accelerator; tokenization and text decoding
-remain software responsibilities.
+English | [简体中文](README.zh-CN.md)
 
-This repository contains the RTL/HLS design, Vivado build scripts, host-side
-reference preparation, and PYNQ runtime. Model weights, checkpoints, and the
-SentencePiece tokenizer are **not** included.
+![Board: PYNQ-Z2 / XC7Z020](https://img.shields.io/badge/Board-PYNQ--Z2%20%2F%20XC7Z020-2563eb?style=flat-square)
+![Vivado: 2018.2](https://img.shields.io/badge/Vivado-2018.2-0f766e?style=flat-square)
+![License: MIT](https://img.shields.io/badge/Code%20License-MIT-16a34a?style=flat-square)
 
-## Measured performance
+This project runs a small, Q6-quantized Chinese story model on the PYNQ-Z2. The
+ARM prepares the request; programmable logic (PL) takes over prompt prefill and
+the complete autoregressive decode loop. The result is a compact, inspectable
+FPGA inference project with a measured end-to-end generation rate above 200
+tokens per second.
 
-The fastest board result confirmed so far is **203.66 generated tokens/s** on a
-PYNQ-Z2 with a 20-token prompt and 128 generated tokens. It is the median of five
-runs (0.62850 s per request); all five runs matched every generated token and
-all 128 per-step logit argmaxes against the Q6 PyTorch reference.
+Model weights, checkpoints, tokenizer files, and training data are not included.
+See [the companion model repository](https://github.com/ModenCn/tinyllamas-zh)
+for model artifacts and their terms.
 
-| Configuration | Generated tokens/s | Request | Validation |
-| --- | ---: | --- | --- |
-| Autonomous PL, W1/W3 projections parallel | **203.66** | 20 prompt + 128 generated | 5/5 exact token IDs and argmaxes |
-| Tuned PS-only reference | 27.98 | Same 20 + 128 request, including prefill | Exact token IDs and argmaxes |
+## The result
 
-The PL result is about **7.3x** the PS-only end-to-end generated-token rate for
-this model and request. It is a measured throughput comparison, not a claim of
-10x speedup. Host tokenization, SSH/file transfer, model preparation, and
-one-time overlay loading are excluded. The result returns logits for validation.
+### 203.66 generated tokens/s
 
-The measured overlay used a 127 MHz PL/HP clock with the PS FCLK at 125 MHz.
-Vivado 2018.2 routed setup and hold slack were +0.020 ns and +0.014 ns,
-respectively, with no failing endpoints. Results are specific to the TinyLLM Q6
-model and the PYNQ-Z2 / XC7Z020.
+Measured on a PYNQ-Z2 using a 20-token prompt and 128 generated tokens. This is
+the median of five board runs: **0.62850 seconds per request**. Every run matched
+the Q6 PyTorch reference token-for-token and matched all 128 per-step logit
+argmaxes.
 
-The source also contains a K/V-parallel experimental configuration. It passed
-HLS C simulation and Vivado timing signoff, but has **not** completed a board
-benchmark; do not attribute the 203.66 tokens/s result to that experiment.
+| Same request: 20 prompt tokens + 128 generated tokens | Rate | Validation |
+| --- | ---: | --- |
+| Autonomous PL, W1/W3 feed-forward projections in parallel | **203.66 tok/s** | 5/5 runs exact; 128/128 argmaxes |
+| Tuned PS-only reference | 27.98 tok/s | Exact token IDs and argmaxes |
 
-## Architecture
+For this model and request, the PL design is about **7.3x** faster than the tuned
+PS-only reference. Host tokenization, model preparation, SSH transfer, and
+one-time overlay loading are excluded. The measured PL run returned logits for
+numerical validation. This is a benchmark result for the stated model, board,
+and request length, not a general claim about FPGA-versus-CPU performance.
 
-- The PL performs prompt prefill and the complete greedy decode loop, including
-  embeddings, all transformer layers, attention, KV-cache updates, final norm,
-  vocabulary projection, argmax, and stop-token handling.
-- The model image and KV cache reside in PS DDR and are accessed through AXI HP
-  ports. The model is not stored entirely in BRAM.
-- The benchmark model is a 1.45M-parameter, five-layer Llama-style Chinese story
-  model: dimension 128, four query heads, two KV heads, vocabulary 4096, and
-  maximum context 512.
-- The validated speed profile runs independent W1 and W3 FFN projections in
-  parallel on separate memory ports. A later optional experiment also
-  parallelizes K/V projections and uses a precomputed RoPE table.
+The validated overlay uses a 127 MHz PL/HP clock while PS FCLK stays at 125 MHz.
+Vivado 2018.2 routed setup slack was +0.020 ns and hold slack was +0.014 ns, with
+no failing endpoints. The optional K/V-parallel variant has passed HLS C
+simulation and Vivado timing signoff, but has **not** completed a board benchmark
+and is not included in the result above.
 
-## Requirements
+## What runs where
 
-- Vivado and Vivado HLS 2018.2, including the PYNQ-Z2 board files.
-- PYNQ-Z2 with the PYNQ 2.5 image for the measured runtime.
-- A host Python environment with NumPy, PyTorch, SentencePiece, and Paramiko.
-- The companion model repository and its Q6W artifact/checkpoint. These files
-  are separate from this code repository and are not redistributed here:
-  [ModenCn/tinyllamas-zh](https://github.com/ModenCn/tinyllamas-zh).
-
-Install host dependencies in an environment that can also import the companion
-repository's `q6w_format.py` and `CachedTransformer` reference implementation:
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements-host.txt
+```mermaid
+flowchart LR
+    P[Chinese prompt] --> H[Host Python<br/>tokenize and prepare]
+    H --> D[PS DDR<br/>Q6 model and KV cache]
+    D <--> A[PL accelerator<br/>prefill and greedy decode]
+    A --> T[Token IDs and optional logits]
+    T --> H
+    H --> S[SentencePiece text]
 ```
 
-## Build and run the validated profile
+The PL performs embeddings, all transformer layers, attention, KV-cache updates,
+final normalization, vocabulary projection, argmax, and stop-token handling. The
+model image and KV cache live in PS DDR and are accessed through AXI HP ports;
+the full model does not fit in BRAM.
 
-Place this repository and the companion model repository in a shared workspace:
+The benchmark model is a five-layer, Llama-style Chinese story model with about
+1.45M parameters: dimension 128, four query heads, two KV heads, vocabulary 4096,
+and maximum context 512. The measured speed profile runs the two FFN input
+projections, W1 and W3, in parallel using separate memory ports.
+
+## Try the benchmark request
+
+The standard test prompt is:
+
+```text
+故事开头：从前，有一只叫小白的兔子。
+续写：
+```
+
+The preparation script builds a fixed request and a PyTorch golden result. A
+successful board run checks both generated token IDs and per-step logits against
+that golden. The benchmark record looks like this:
+
+```text
+prompt tokens:       20
+generated tokens:   128
+median board time:  0.62850 s  (5 runs)
+generation rate:    203.66 tok/s
+token IDs:          exact on all runs
+logit argmax:       128 / 128 steps
+```
+
+## Reproduce it
+
+### Requirements
+
+- Vivado and Vivado HLS 2018.2, with PYNQ-Z2 board files installed.
+- PYNQ-Z2 running the PYNQ 2.5 image for the measured runtime.
+- Host Python with the dependencies in `requirements-host.txt`.
+- A checkout of [ModenCn/tinyllamas-zh](https://github.com/ModenCn/tinyllamas-zh)
+  containing the Q6W artifact and the PyTorch reference implementation. The
+  companion checkout and this project can sit side by side:
 
 ```text
 workspace/
@@ -77,9 +103,15 @@ workspace/
   TinyLLMStory-zh/
 ```
 
-From the project root, prepare a fixed 20-token Chinese prompt and 128-token Q6
-PyTorch golden request. Pass `--model-repo` if the companion checkout is
-elsewhere; alternatively set `TINYLLM_MODEL_REPO`.
+Create a host environment from the project root:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements-host.txt
+```
+
+### Prepare the golden request
 
 ```powershell
 $modelRepo = (Resolve-Path "..\..\TinyLLMStory-zh").Path
@@ -94,8 +126,10 @@ python scripts\generate_hls_layout.py `
 python scripts\prepare_hls_testdata.py --package-dir build\autonomous_hls\e2e128
 ```
 
-Build/export the HLS IP. Set `AUTONOMOUS_PYTHON` to the Python executable from
-the environment used above, and set `$vivadoHls` to your Vivado 2018.2 install:
+### Build the accelerator and overlay
+
+Set `AUTONOMOUS_PYTHON` to the Python executable from the environment above and
+adjust the Vivado paths if needed:
 
 ```powershell
 $env:AUTONOMOUS_HLS_PROJECT = "tinyllm_pynq_par"
@@ -108,9 +142,9 @@ $vivadoHls = "C:\Xilinx\Vivado\2018.2\bin\vivado_hls.bat"
 & $vivadoHls -f scripts\build_autonomous_hls.tcl
 ```
 
-The HLS script runs C simulation, synthesis, and IP export. Build the PYNQ-Z2
-overlay with PS FCLK 125 MHz and PL/HP 127 MHz. The publish guard refuses to
-copy a bitstream if routed timing does not pass setup and hold signoff.
+The HLS build runs C simulation, synthesis, and IP export. Then create the
+PYNQ-Z2 overlay. The build script publishes a bitstream only after routed setup
+and hold signoff pass.
 
 ```powershell
 $env:AUTONOMOUS_OVERLAY_TAG = "par127"
@@ -122,10 +156,12 @@ $vivado = "C:\Xilinx\Vivado\2018.2\bin\vivado.bat"
 & $vivado -mode batch -source scripts\build_autonomous_overlay.tcl
 ```
 
-The overlay is emitted under
-`build/autonomous_overlay_par127/output/`. For the board run, configure `PYNQ_HOST`
-or pass `--host`; the deploy script prompts for the board password unless
-`PYNQ_PASSWORD` is set in the local shell. Do not commit credentials.
+The overlay is emitted under `build/autonomous_overlay_par127/output/`.
+
+### Run on the board
+
+Set `PYNQ_HOST` to the board's address. The script prompts for its password
+unless `PYNQ_PASSWORD` is set in the local shell. Never commit credentials.
 
 ```powershell
 $env:PYNQ_HOST = "<your-pynq-z2-address>"
@@ -137,38 +173,38 @@ python scripts\deploy_autonomous.py `
   --legacy-kv-mirror --dual-ffn-w3
 ```
 
-The board script loads the overlay at runtime. It does not rewrite the SD boot
+The overlay is loaded at runtime; this flow does not rewrite the SD boot
 partition or require a reboot.
 
-### Optional K/V-parallel experiment
+### Experimental K/V parallelism
 
-To build the newer, not-yet-board-benchmarked K/V-parallel variant, add these
-HLS environment variables before running `build_autonomous_hls.tcl`:
+The source also contains a K/V-parallel experiment. To enable it, add these HLS
+settings (the experiment also requires the FFN parallelism and legacy buffer
+options shown above):
 
 ```powershell
 $env:AUTONOMOUS_PRECOMPUTED_ROPE = "1"
 $env:AUTONOMOUS_PARALLEL_KV = "1"
 ```
 
-The parallel K/V build requires `AUTONOMOUS_PARALLEL_FFN=1` and
-`AUTONOMOUS_LEGACY_KV_MIRROR=1`. Its board runner uses `--parallel-kv`; benchmark
-it independently before comparing or reporting its throughput.
+Deploy it with `--parallel-kv`. Benchmark it independently before comparing or
+reporting its throughput; it is not yet board-validated.
 
-## Repository layout
+## Repository map
 
-- `rtl/autonomous/`: full-model HLS accelerator and C-simulation testbench.
-- `rtl/*.sv`, `sim/`: streaming Q6 GEMV RTL experiments and testbenches.
-- `scripts/build_autonomous_*.tcl`: HLS and Vivado overlay builds.
-- `scripts/prepare_*.py`: model layout, golden request, and simulation inputs.
-- `scripts/deploy_*.py`, `autonomous_board.py`, `board_e2e.py`: deployment and
-  board-side execution/validation.
-- `build/`: generated projects, models, bitstreams, test vectors, and reports;
-  intentionally ignored by Git.
+| Path | Contents |
+| --- | --- |
+| `rtl/autonomous/` | Full-model HLS accelerator and C-simulation testbench |
+| `rtl/*.sv`, `sim/` | Streaming Q6 GEMV RTL experiments and testbenches |
+| `scripts/build_autonomous_*.tcl` | HLS and Vivado overlay build flows |
+| `scripts/prepare_*.py` | Golden requests, model layout, and simulation inputs |
+| `scripts/deploy_*.py`, `autonomous_board.py` | Board deployment and runtime |
+| `build/` | Generated projects, model images, bitstreams, and reports; Git-ignored |
 
 ## License and attribution
 
 This repository's source code and RTL are licensed under the MIT License. The
 model, checkpoint, tokenizer, and training data are not included and retain
-their own terms. The reference model implementation and Q6W format are from
+their own terms. The reference model implementation and Q6W format come from
 [ModenCn/tinyllamas-zh](https://github.com/ModenCn/tinyllamas-zh); see that
-project for its license and the model/data provenance.
+project for license and model/data provenance.
