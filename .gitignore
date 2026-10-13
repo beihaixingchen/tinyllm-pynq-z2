@@ -1,0 +1,31 @@
+# Vivado / Vitis generated projects and reports
+/build/
+/.Xil/
+/xsim.dir/
+/NA/
+*.jou
+*.log
+*.pb
+*.backup.*
+*.wdb
+*.vcd
+*.rpt
+*.dmp
+
+# Generated HLS model metadata and local model/data artifacts
+/rtl/autonomous/model_layout.h
+*.bit
+*.hwh
+*.bin
+*.pt
+*.ckpt
+*.model
+*.npz
+*.npy
+
+# Python and editor files
+__pycache__/
+*.py[cod]
+.venv/
+.idea/
+.vscode/
