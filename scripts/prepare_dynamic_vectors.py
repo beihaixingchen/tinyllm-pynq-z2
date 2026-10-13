@@ -22,9 +22,8 @@ def unpack_signed_int6(data, rows, columns):
 
 
 def main():
-    workspace = Path(__file__).resolve().parents[3]
-    tiny_repo = workspace / "TinyLLMStory-zh"
-    artifact_dir = tiny_repo / "quantization" / "artifacts"
+    project_dir = Path(__file__).resolve().parents[1]
+    artifact_dir = project_dir / "quantization" / "artifacts"
     parser = argparse.ArgumentParser(description="Prepare a real-Q6 dynamic GEMV RTL test vector")
     parser.add_argument("--matrix", default="layers.0.feed_forward.w1.weight")
     parser.add_argument("--out-dir", type=Path, required=True)

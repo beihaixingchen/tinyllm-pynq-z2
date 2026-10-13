@@ -16,7 +16,7 @@ def main():
     parser = argparse.ArgumentParser(description="Upload and run the prepared Q6 TinyLLM experiment on PYNQ-Z2")
     parser.add_argument("--package-dir", type=Path, default=project_dir / "build" / "e2e")
     parser.add_argument("--model-repo", type=Path,
-                        default=Path(os.environ.get("TINYLLM_MODEL_REPO", project_dir.parent.parent / "TinyLLMStory-zh")))
+                        default=Path(os.environ.get("TINYLLM_MODEL_REPO", project_dir)))
     parser.add_argument("--host", default=os.environ.get("PYNQ_HOST"),
                         help="board address; defaults to PYNQ_HOST")
     parser.add_argument("--user", default=os.environ.get("PYNQ_USER", "xilinx"))

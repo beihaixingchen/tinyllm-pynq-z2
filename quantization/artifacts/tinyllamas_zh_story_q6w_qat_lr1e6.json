@@ -1,0 +1,1074 @@
+{
+  "format": "TinyLLMStory-zh Q6W rowwise v1",
+  "magic_ascii": "TLQ6ROW",
+  "version": 1,
+  "quantization": {
+    "kind": "weight-only symmetric per-output-row int6",
+    "integer_range": [
+      -31,
+      31
+    ],
+    "scale": "max(abs(row))/31; all-zero rows use 1.0",
+    "rounding": "nearest via torch.round (ties-to-even)",
+    "packing": "four signed 6-bit two's-complement values packed low-bit-first into 3 bytes",
+    "activations": "FP32 reference; activation quantization is not included",
+    "norm_parameters": "FP32",
+    "tied_output": "output.weight aliases tok_embeddings.weight; stored once"
+  },
+  "model_args": {
+    "dim": 128,
+    "n_layers": 5,
+    "n_heads": 4,
+    "n_kv_heads": 2,
+    "vocab_size": 4096,
+    "multiple_of": 32,
+    "max_seq_len": 512,
+    "dropout": 0.0
+  },
+  "source_checkpoint": "training/checkpoints/q6w_qat_lr1e6_step25000.pt",
+  "source_step": 25000,
+  "source_checkpoint_sha256": "280d6155e3a309d5e32e72a7ddd9c87261bc11fbb7d4f75a8822206ef74ca169",
+  "unique_parameter_count": 1447296,
+  "q6_value_count": 1445888,
+  "fp32_norm_value_count": 1408,
+  "tensor_count": 47,
+  "header": {
+    "struct": "<8sIIII",
+    "bytes": 24,
+    "fields": [
+      "magic[8]",
+      "version:uint32",
+      "tensor_count:uint32",
+      "weight_bits:uint32",
+      "scale_dtype:uint32 (1=FP32)"
+    ],
+    "payload_alignment_bytes": 64
+  },
+  "binary_file": "tinyllamas_zh_story_q6w_qat_lr1e6.bin",
+  "binary_bytes": 1130816,
+  "binary_sha256": "ddeaa72c5923f2c445a7543cf53dc13dffc674f53f49f822c0653ef6735c4c90",
+  "fp32_unique_weight_bytes": 5789184,
+  "tensors": [
+    {
+      "name": "tok_embeddings.weight",
+      "shape": [
+        4096,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        4096
+      ],
+      "scale_offset": 64,
+      "scale_bytes": 16384,
+      "data_offset": 16448,
+      "data_bytes": 393216,
+      "values": 524288,
+      "stats": {
+        "max_abs_error": 0.006617873907089233,
+        "mean_abs_error": 0.0018089605728164315,
+        "rmse": 0.0021266385447233915
+      }
+    },
+    {
+      "name": "layers.0.attention.wq.weight",
+      "shape": [
+        128,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        128
+      ],
+      "scale_offset": 409664,
+      "scale_bytes": 512,
+      "data_offset": 410176,
+      "data_bytes": 12288,
+      "values": 16384,
+      "stats": {
+        "max_abs_error": 0.005115866661071777,
+        "mean_abs_error": 0.001361398259177804,
+        "rmse": 0.0016366653144359589
+      }
+    },
+    {
+      "name": "layers.0.attention.wk.weight",
+      "shape": [
+        64,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        64
+      ],
+      "scale_offset": 422464,
+      "scale_bytes": 256,
+      "data_offset": 422720,
+      "data_bytes": 6144,
+      "values": 8192,
+      "stats": {
+        "max_abs_error": 0.005886457860469818,
+        "mean_abs_error": 0.0015110906679183245,
+        "rmse": 0.0018332796171307564
+      }
+    },
+    {
+      "name": "layers.0.attention.wv.weight",
+      "shape": [
+        64,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        64
+      ],
+      "scale_offset": 428864,
+      "scale_bytes": 256,
+      "data_offset": 429120,
+      "data_bytes": 6144,
+      "values": 8192,
+      "stats": {
+        "max_abs_error": 0.001174967736005783,
+        "mean_abs_error": 0.0003989962278865278,
+        "rmse": 0.0004688113112933934
+      }
+    },
+    {
+      "name": "layers.0.attention.wo.weight",
+      "shape": [
+        128,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        128
+      ],
+      "scale_offset": 435264,
+      "scale_bytes": 512,
+      "data_offset": 435776,
+      "data_bytes": 12288,
+      "values": 16384,
+      "stats": {
+        "max_abs_error": 0.0017475122585892677,
+        "mean_abs_error": 0.000561452005058527,
+        "rmse": 0.0006606910028494895
+      }
+    },
+    {
+      "name": "layers.0.feed_forward.w1.weight",
+      "shape": [
+        352,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        352
+      ],
+      "scale_offset": 448064,
+      "scale_bytes": 1408,
+      "data_offset": 449472,
+      "data_bytes": 33792,
+      "values": 45056,
+      "stats": {
+        "max_abs_error": 0.002820804715156555,
+        "mean_abs_error": 0.0009919611038640141,
+        "rmse": 0.0011627975618466735
+      }
+    },
+    {
+      "name": "layers.0.feed_forward.w2.weight",
+      "shape": [
+        128,
+        352
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        128
+      ],
+      "scale_offset": 483264,
+      "scale_bytes": 512,
+      "data_offset": 483776,
+      "data_bytes": 33792,
+      "values": 45056,
+      "stats": {
+        "max_abs_error": 0.003230404108762741,
+        "mean_abs_error": 0.0010598236694931984,
+        "rmse": 0.0012389305047690868
+      }
+    },
+    {
+      "name": "layers.0.feed_forward.w3.weight",
+      "shape": [
+        352,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        352
+      ],
+      "scale_offset": 517568,
+      "scale_bytes": 1408,
+      "data_offset": 518976,
+      "data_bytes": 33792,
+      "values": 45056,
+      "stats": {
+        "max_abs_error": 0.0029568038880825043,
+        "mean_abs_error": 0.0009545162902213633,
+        "rmse": 0.0011154148960486054
+      }
+    },
+    {
+      "name": "layers.1.attention.wq.weight",
+      "shape": [
+        128,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        128
+      ],
+      "scale_offset": 552768,
+      "scale_bytes": 512,
+      "data_offset": 553280,
+      "data_bytes": 12288,
+      "values": 16384,
+      "stats": {
+        "max_abs_error": 0.007187932729721069,
+        "mean_abs_error": 0.0014603652525693178,
+        "rmse": 0.0018240545177832246
+      }
+    },
+    {
+      "name": "layers.1.attention.wk.weight",
+      "shape": [
+        64,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        64
+      ],
+      "scale_offset": 565568,
+      "scale_bytes": 256,
+      "data_offset": 565824,
+      "data_bytes": 6144,
+      "values": 8192,
+      "stats": {
+        "max_abs_error": 0.006738826632499695,
+        "mean_abs_error": 0.0013950279681012034,
+        "rmse": 0.0016975878970697522
+      }
+    },
+    {
+      "name": "layers.1.attention.wv.weight",
+      "shape": [
+        64,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        64
+      ],
+      "scale_offset": 571968,
+      "scale_bytes": 256,
+      "data_offset": 572224,
+      "data_bytes": 6144,
+      "values": 8192,
+      "stats": {
+        "max_abs_error": 0.0014204380568116903,
+        "mean_abs_error": 0.0005144151509739459,
+        "rmse": 0.0006022357847541571
+      }
+    },
+    {
+      "name": "layers.1.attention.wo.weight",
+      "shape": [
+        128,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        128
+      ],
+      "scale_offset": 578368,
+      "scale_bytes": 512,
+      "data_offset": 578880,
+      "data_bytes": 12288,
+      "values": 16384,
+      "stats": {
+        "max_abs_error": 0.002741653472185135,
+        "mean_abs_error": 0.0006898617139086127,
+        "rmse": 0.0008132203365676105
+      }
+    },
+    {
+      "name": "layers.1.feed_forward.w1.weight",
+      "shape": [
+        352,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        352
+      ],
+      "scale_offset": 591168,
+      "scale_bytes": 1408,
+      "data_offset": 592576,
+      "data_bytes": 33792,
+      "values": 45056,
+      "stats": {
+        "max_abs_error": 0.004113124683499336,
+        "mean_abs_error": 0.0010083909146487713,
+        "rmse": 0.0011812284355983138
+      }
+    },
+    {
+      "name": "layers.1.feed_forward.w2.weight",
+      "shape": [
+        128,
+        352
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        128
+      ],
+      "scale_offset": 626368,
+      "scale_bytes": 512,
+      "data_offset": 626880,
+      "data_bytes": 33792,
+      "values": 45056,
+      "stats": {
+        "max_abs_error": 0.003094836138188839,
+        "mean_abs_error": 0.0011030343594029546,
+        "rmse": 0.0012850569328293204
+      }
+    },
+    {
+      "name": "layers.1.feed_forward.w3.weight",
+      "shape": [
+        352,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        352
+      ],
+      "scale_offset": 660672,
+      "scale_bytes": 1408,
+      "data_offset": 662080,
+      "data_bytes": 33792,
+      "values": 45056,
+      "stats": {
+        "max_abs_error": 0.0030478835105895996,
+        "mean_abs_error": 0.0009630781132727861,
+        "rmse": 0.0011258936719968915
+      }
+    },
+    {
+      "name": "layers.2.attention.wq.weight",
+      "shape": [
+        128,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        128
+      ],
+      "scale_offset": 695872,
+      "scale_bytes": 512,
+      "data_offset": 696384,
+      "data_bytes": 12288,
+      "values": 16384,
+      "stats": {
+        "max_abs_error": 0.00849509984254837,
+        "mean_abs_error": 0.00155548972543329,
+        "rmse": 0.0019033579155802727
+      }
+    },
+    {
+      "name": "layers.2.attention.wk.weight",
+      "shape": [
+        64,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        64
+      ],
+      "scale_offset": 708672,
+      "scale_bytes": 256,
+      "data_offset": 708928,
+      "data_bytes": 6144,
+      "values": 8192,
+      "stats": {
+        "max_abs_error": 0.009203441441059113,
+        "mean_abs_error": 0.0014579991111531854,
+        "rmse": 0.0018052125815302134
+      }
+    },
+    {
+      "name": "layers.2.attention.wv.weight",
+      "shape": [
+        64,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        64
+      ],
+      "scale_offset": 715072,
+      "scale_bytes": 256,
+      "data_offset": 715328,
+      "data_bytes": 6144,
+      "values": 8192,
+      "stats": {
+        "max_abs_error": 0.0019564256072044373,
+        "mean_abs_error": 0.0006901830201968551,
+        "rmse": 0.0008077508537098765
+      }
+    },
+    {
+      "name": "layers.2.attention.wo.weight",
+      "shape": [
+        128,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        128
+      ],
+      "scale_offset": 721472,
+      "scale_bytes": 512,
+      "data_offset": 721984,
+      "data_bytes": 12288,
+      "values": 16384,
+      "stats": {
+        "max_abs_error": 0.002408582717180252,
+        "mean_abs_error": 0.0007672501378692687,
+        "rmse": 0.0009010313078761101
+      }
+    },
+    {
+      "name": "layers.2.feed_forward.w1.weight",
+      "shape": [
+        352,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        352
+      ],
+      "scale_offset": 734272,
+      "scale_bytes": 1408,
+      "data_offset": 735680,
+      "data_bytes": 33792,
+      "values": 45056,
+      "stats": {
+        "max_abs_error": 0.00328823016025126,
+        "mean_abs_error": 0.0010286447359248996,
+        "rmse": 0.0012082988396286964
+      }
+    },
+    {
+      "name": "layers.2.feed_forward.w2.weight",
+      "shape": [
+        128,
+        352
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        128
+      ],
+      "scale_offset": 769472,
+      "scale_bytes": 512,
+      "data_offset": 769984,
+      "data_bytes": 33792,
+      "values": 45056,
+      "stats": {
+        "max_abs_error": 0.00296952947974205,
+        "mean_abs_error": 0.0011251333635300398,
+        "rmse": 0.0013093394227325916
+      }
+    },
+    {
+      "name": "layers.2.feed_forward.w3.weight",
+      "shape": [
+        352,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        352
+      ],
+      "scale_offset": 803776,
+      "scale_bytes": 1408,
+      "data_offset": 805184,
+      "data_bytes": 33792,
+      "values": 45056,
+      "stats": {
+        "max_abs_error": 0.003294236958026886,
+        "mean_abs_error": 0.001009377185255289,
+        "rmse": 0.0011807841947302222
+      }
+    },
+    {
+      "name": "layers.3.attention.wq.weight",
+      "shape": [
+        128,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        128
+      ],
+      "scale_offset": 838976,
+      "scale_bytes": 512,
+      "data_offset": 839488,
+      "data_bytes": 12288,
+      "values": 16384,
+      "stats": {
+        "max_abs_error": 0.00666433572769165,
+        "mean_abs_error": 0.0014185328036546707,
+        "rmse": 0.001786374836228788
+      }
+    },
+    {
+      "name": "layers.3.attention.wk.weight",
+      "shape": [
+        64,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        64
+      ],
+      "scale_offset": 851776,
+      "scale_bytes": 256,
+      "data_offset": 852032,
+      "data_bytes": 6144,
+      "values": 8192,
+      "stats": {
+        "max_abs_error": 0.0053506214171648026,
+        "mean_abs_error": 0.0013025092193856835,
+        "rmse": 0.0016272590728476644
+      }
+    },
+    {
+      "name": "layers.3.attention.wv.weight",
+      "shape": [
+        64,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        64
+      ],
+      "scale_offset": 858176,
+      "scale_bytes": 256,
+      "data_offset": 858432,
+      "data_bytes": 6144,
+      "values": 8192,
+      "stats": {
+        "max_abs_error": 0.00263767596334219,
+        "mean_abs_error": 0.0009632982546463609,
+        "rmse": 0.0011299853213131428
+      }
+    },
+    {
+      "name": "layers.3.attention.wo.weight",
+      "shape": [
+        128,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        128
+      ],
+      "scale_offset": 864576,
+      "scale_bytes": 512,
+      "data_offset": 865088,
+      "data_bytes": 12288,
+      "values": 16384,
+      "stats": {
+        "max_abs_error": 0.004083119332790375,
+        "mean_abs_error": 0.0012211103457957506,
+        "rmse": 0.0014435313642024994
+      }
+    },
+    {
+      "name": "layers.3.feed_forward.w1.weight",
+      "shape": [
+        352,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        352
+      ],
+      "scale_offset": 877376,
+      "scale_bytes": 1408,
+      "data_offset": 878784,
+      "data_bytes": 33792,
+      "values": 45056,
+      "stats": {
+        "max_abs_error": 0.0031128088012337685,
+        "mean_abs_error": 0.001001524506136775,
+        "rmse": 0.001174416858702898
+      }
+    },
+    {
+      "name": "layers.3.feed_forward.w2.weight",
+      "shape": [
+        128,
+        352
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        128
+      ],
+      "scale_offset": 912576,
+      "scale_bytes": 512,
+      "data_offset": 913088,
+      "data_bytes": 33792,
+      "values": 45056,
+      "stats": {
+        "max_abs_error": 0.003941923379898071,
+        "mean_abs_error": 0.0012369960313662887,
+        "rmse": 0.0014429327566176653
+      }
+    },
+    {
+      "name": "layers.3.feed_forward.w3.weight",
+      "shape": [
+        352,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        352
+      ],
+      "scale_offset": 946880,
+      "scale_bytes": 1408,
+      "data_offset": 948288,
+      "data_bytes": 33792,
+      "values": 45056,
+      "stats": {
+        "max_abs_error": 0.0035294853150844574,
+        "mean_abs_error": 0.001114224549382925,
+        "rmse": 0.0013034582370892167
+      }
+    },
+    {
+      "name": "layers.4.attention.wq.weight",
+      "shape": [
+        128,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        128
+      ],
+      "scale_offset": 982080,
+      "scale_bytes": 512,
+      "data_offset": 982592,
+      "data_bytes": 12288,
+      "values": 16384,
+      "stats": {
+        "max_abs_error": 0.006890304386615753,
+        "mean_abs_error": 0.0015031063230708241,
+        "rmse": 0.0018269451102241874
+      }
+    },
+    {
+      "name": "layers.4.attention.wk.weight",
+      "shape": [
+        64,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        64
+      ],
+      "scale_offset": 994880,
+      "scale_bytes": 256,
+      "data_offset": 995136,
+      "data_bytes": 6144,
+      "values": 8192,
+      "stats": {
+        "max_abs_error": 0.007924705743789673,
+        "mean_abs_error": 0.0013971587177366018,
+        "rmse": 0.0017174475360661745
+      }
+    },
+    {
+      "name": "layers.4.attention.wv.weight",
+      "shape": [
+        64,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        64
+      ],
+      "scale_offset": 1001280,
+      "scale_bytes": 256,
+      "data_offset": 1001536,
+      "data_bytes": 6144,
+      "values": 8192,
+      "stats": {
+        "max_abs_error": 0.002255041617900133,
+        "mean_abs_error": 0.0008840361842885613,
+        "rmse": 0.0010258505353704095
+      }
+    },
+    {
+      "name": "layers.4.attention.wo.weight",
+      "shape": [
+        128,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        128
+      ],
+      "scale_offset": 1007680,
+      "scale_bytes": 512,
+      "data_offset": 1008192,
+      "data_bytes": 12288,
+      "values": 16384,
+      "stats": {
+        "max_abs_error": 0.003099057823419571,
+        "mean_abs_error": 0.0010451644193381071,
+        "rmse": 0.00122621760237962
+      }
+    },
+    {
+      "name": "layers.4.feed_forward.w1.weight",
+      "shape": [
+        352,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        352
+      ],
+      "scale_offset": 1020480,
+      "scale_bytes": 1408,
+      "data_offset": 1021888,
+      "data_bytes": 33792,
+      "values": 45056,
+      "stats": {
+        "max_abs_error": 0.0032294616103172302,
+        "mean_abs_error": 0.0010087380651384592,
+        "rmse": 0.0011799073545262218
+      }
+    },
+    {
+      "name": "layers.4.feed_forward.w2.weight",
+      "shape": [
+        128,
+        352
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        128
+      ],
+      "scale_offset": 1055680,
+      "scale_bytes": 512,
+      "data_offset": 1056192,
+      "data_bytes": 33792,
+      "values": 45056,
+      "stats": {
+        "max_abs_error": 0.0035507753491401672,
+        "mean_abs_error": 0.0012680984800681472,
+        "rmse": 0.0014801800716668367
+      }
+    },
+    {
+      "name": "layers.4.feed_forward.w3.weight",
+      "shape": [
+        352,
+        128
+      ],
+      "dtype": "signed_int6_twos_complement",
+      "layout": "row_major; each output row has one symmetric scale",
+      "qmin": -31,
+      "qmax": 31,
+      "scale_dtype": "little_endian_float32",
+      "scale_shape": [
+        352
+      ],
+      "scale_offset": 1089984,
+      "scale_bytes": 1408,
+      "data_offset": 1091392,
+      "data_bytes": 33792,
+      "values": 45056,
+      "stats": {
+        "max_abs_error": 0.0038426965475082397,
+        "mean_abs_error": 0.0011436946224421263,
+        "rmse": 0.0013427416561171412
+      }
+    },
+    {
+      "name": "layers.0.attention_norm.weight",
+      "shape": [
+        128
+      ],
+      "dtype": "little_endian_float32",
+      "layout": "row_major",
+      "data_offset": 1125184,
+      "data_bytes": 512,
+      "values": 128
+    },
+    {
+      "name": "layers.0.ffn_norm.weight",
+      "shape": [
+        128
+      ],
+      "dtype": "little_endian_float32",
+      "layout": "row_major",
+      "data_offset": 1125696,
+      "data_bytes": 512,
+      "values": 128
+    },
+    {
+      "name": "layers.1.attention_norm.weight",
+      "shape": [
+        128
+      ],
+      "dtype": "little_endian_float32",
+      "layout": "row_major",
+      "data_offset": 1126208,
+      "data_bytes": 512,
+      "values": 128
+    },
+    {
+      "name": "layers.1.ffn_norm.weight",
+      "shape": [
+        128
+      ],
+      "dtype": "little_endian_float32",
+      "layout": "row_major",
+      "data_offset": 1126720,
+      "data_bytes": 512,
+      "values": 128
+    },
+    {
+      "name": "layers.2.attention_norm.weight",
+      "shape": [
+        128
+      ],
+      "dtype": "little_endian_float32",
+      "layout": "row_major",
+      "data_offset": 1127232,
+      "data_bytes": 512,
+      "values": 128
+    },
+    {
+      "name": "layers.2.ffn_norm.weight",
+      "shape": [
+        128
+      ],
+      "dtype": "little_endian_float32",
+      "layout": "row_major",
+      "data_offset": 1127744,
+      "data_bytes": 512,
+      "values": 128
+    },
+    {
+      "name": "layers.3.attention_norm.weight",
+      "shape": [
+        128
+      ],
+      "dtype": "little_endian_float32",
+      "layout": "row_major",
+      "data_offset": 1128256,
+      "data_bytes": 512,
+      "values": 128
+    },
+    {
+      "name": "layers.3.ffn_norm.weight",
+      "shape": [
+        128
+      ],
+      "dtype": "little_endian_float32",
+      "layout": "row_major",
+      "data_offset": 1128768,
+      "data_bytes": 512,
+      "values": 128
+    },
+    {
+      "name": "layers.4.attention_norm.weight",
+      "shape": [
+        128
+      ],
+      "dtype": "little_endian_float32",
+      "layout": "row_major",
+      "data_offset": 1129280,
+      "data_bytes": 512,
+      "values": 128
+    },
+    {
+      "name": "layers.4.ffn_norm.weight",
+      "shape": [
+        128
+      ],
+      "dtype": "little_endian_float32",
+      "layout": "row_major",
+      "data_offset": 1129792,
+      "data_bytes": 512,
+      "values": 128
+    },
+    {
+      "name": "norm.weight",
+      "shape": [
+        128
+      ],
+      "dtype": "little_endian_float32",
+      "layout": "row_major",
+      "data_offset": 1130304,
+      "data_bytes": 512,
+      "values": 128
+    }
+  ]
+}

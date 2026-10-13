@@ -33,8 +33,7 @@ def write_hex(path, values, width):
 
 def main():
     repo_dir = Path(__file__).resolve().parents[1]
-    workspace = Path(__file__).resolve().parents[3]
-    artifacts = workspace / "TinyLLMStory-zh" / "quantization" / "artifacts"
+    artifacts = repo_dir / "quantization" / "artifacts"
 
     parser = argparse.ArgumentParser(description="Prepare Q6W GEMV simulation vectors")
     parser.add_argument("--weights", type=Path, default=artifacts / "tinyllamas_zh_story_q6w_qat_lr1e6.bin")

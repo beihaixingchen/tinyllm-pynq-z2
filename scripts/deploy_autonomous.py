@@ -17,7 +17,7 @@ def main():
     parser.add_argument("--package-dir", type=Path, default=project_dir / "build" / "autonomous_hls" / "e2e32")
     parser.add_argument("--overlay-dir", type=Path, default=project_dir / "build" / "autonomous_overlay" / "output")
     parser.add_argument("--model-repo", type=Path,
-                        default=Path(os.environ.get("TINYLLM_MODEL_REPO", project_dir.parent.parent / "TinyLLMStory-zh")))
+                        default=Path(os.environ.get("TINYLLM_MODEL_REPO", project_dir)))
     parser.add_argument("--host", default=os.environ.get("PYNQ_HOST"),
                         help="board address; defaults to PYNQ_HOST")
     parser.add_argument("--user", default=os.environ.get("PYNQ_USER", "xilinx"))

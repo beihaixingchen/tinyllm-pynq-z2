@@ -38,18 +38,16 @@ def error_stats(actual, reference):
 
 def main():
     project_dir = Path(__file__).resolve().parents[1]
-    workspace = project_dir.parent.parent
-    tiny_repo = workspace / "TinyLLMStory-zh"
-    q6_dir = tiny_repo / "quantization"
+    q6_dir = project_dir / "quantization"
     sys.path.insert(0, str(q6_dir))
-    sys.path.insert(0, str(tiny_repo / "benchmarks"))
+    sys.path.insert(0, str(project_dir / "benchmarks"))
     from q6w_format import sha256_file, unpack_signed_int6
     from torch_benchmark import CachedTransformer
 
     parser = argparse.ArgumentParser(description="Capture one real TinyLLM layer-0 FFN activation for the Q6W GEMV RTL")
     parser.add_argument("--weights", type=Path, default=q6_dir / "artifacts" / "tinyllamas_zh_story_q6w_qat_lr1e6.bin")
     parser.add_argument("--manifest", type=Path, default=q6_dir / "artifacts" / "tinyllamas_zh_story_q6w_qat_lr1e6.json")
-    parser.add_argument("--tokenizer", type=Path, default=tiny_repo / "tok4096.model")
+    parser.add_argument("--tokenizer", type=Path, default=project_dir / "tok4096.model")
     parser.add_argument("--out-dir", type=Path, default=project_dir / "build" / "real_layer0")
     parser.add_argument("--prompt", default="从前，有一只叫小白的兔子。")
     parser.add_argument("--prompt-style", choices=("raw", "story"), default="story")
@@ -57,6 +55,12 @@ def main():
 
     manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
     checkpoint_path = Path(manifest["source_checkpoint"])
+    if not checkpoint_path.is_absolute():
+        checkpoint_path = project_dir / checkpoint_path
+        if not checkpoint_path.is_file():
+            checkpoint_path = project_dir / "training" / "checkpoints" / Path(
+                manifest["source_checkpoint"]
+            ).name
     if not checkpoint_path.is_file():
         raise FileNotFoundError("Q6 source checkpoint is missing: {}".format(checkpoint_path))
     checkpoint_sha256 = sha256_file(checkpoint_path)

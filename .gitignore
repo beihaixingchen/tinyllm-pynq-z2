@@ -29,3 +29,15 @@ __pycache__/
 .venv/
 .idea/
 .vscode/
+
+# Published model package assets. Keep other generated model/build files ignored.
+!/tok4096.model
+!/quantization/artifacts/*.bin
+!/quantization/artifacts/*.json
+!/training/checkpoints/*.pt
+
+# Rebuilt datasets, training runs, and generated evaluation dumps
+/training/data/
+/training/out*/
+/quantization/artifacts/*.jsonl
+/quantization/artifacts/*summary.json

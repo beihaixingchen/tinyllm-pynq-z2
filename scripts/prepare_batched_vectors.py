@@ -24,8 +24,8 @@ def unpack_signed_int6(data, rows, columns):
 
 
 def main():
-    workspace = Path(__file__).resolve().parents[3]
-    artifact_dir = workspace / "TinyLLMStory-zh" / "quantization" / "artifacts"
+    project_dir = Path(__file__).resolve().parents[1]
+    artifact_dir = project_dir / "quantization" / "artifacts"
     manifest = json.loads(
         (artifact_dir / (ARTIFACT_NAME + ".json")).read_text(encoding="utf-8")
     )

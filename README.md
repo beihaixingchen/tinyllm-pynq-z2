@@ -12,9 +12,9 @@ the complete autoregressive decode loop. The result is a compact, inspectable
 FPGA inference project with a measured end-to-end generation rate above 200
 tokens per second.
 
-Model weights, checkpoints, tokenizer files, and training data are not included.
-See [the companion model repository](https://github.com/ModenCn/tinyllamas-zh)
-for model artifacts and their terms.
+The repository includes the model's Q6W deployment weights, their manifests,
+the SentencePiece tokenizer, FP32 training checkpoints, and Q6W-aware training
+and evaluation code. The original training corpus is not included.
 
 ## The result
 
@@ -41,6 +41,33 @@ Vivado 2018.2 routed setup slack was +0.020 ns and hold slack was +0.014 ns, wit
 no failing endpoints. The optional K/V-parallel variant has passed HLS C
 simulation and Vivado timing signoff, but has **not** completed a board benchmark
 and is not included in the result above.
+
+## Model and training artifacts
+
+This is a customized TinyLLMStory-zh checkpoint, not the unmodified upstream
+weight file. Deployment uses signed-int6 weight-only Q6W, with per-row FP32
+scales and FP32 RMSNorm parameters:
+
+| Artifact | Source step | SHA-256 | Use |
+| --- | ---: | --- | --- |
+| `quantization/artifacts/tinyllamas_zh_story_q6w_qat_lr1e6.bin` | 25,000 | `ddeaa72c5923f2c445a7543cf53dc13dffc674f53f49f822c0653ef6735c4c90` | QAT weights; default for deployment |
+| `quantization/artifacts/tinyllamas_zh_story_q6w.bin` | 23,900 | `4edc130ef84cbb4450667a3e74ad5f8403608b3f90247256c006ec3604c7a0bf` | Pre-QAT baseline for A/B comparison |
+
+Each `.bin` has a matching JSON manifest with the 47-tensor layout, shapes,
+offsets and row scales. Both binaries are 1,130,816 bytes, about 5.12x smaller
+than the FP32 unique-weight payload. `tok4096.model` is included for tokenization.
+The FP32 checkpoints in `training/checkpoints/` are for training/reproduction;
+the QAT checkpoint is **not** the packed model loaded by the PL runtime.
+
+QAT used row-wise fake Q6 quantization with an identity straight-through
+estimator. On the same 50 masked validation batches, the exported Q6 loss moved
+from 2.203846 to 2.193370 (about 0.48% lower); matched generation stopping was
+similar (EOS/cap 121/7 vs 122/6). This demonstrates quantization-error
+compensation on that evaluation, not a general story-quality improvement. See
+[the Q6W format and evaluation notes](docs/Q6_QUANTIZATION.md) and
+[`training/README.md`](training/README.md). The Chinese TinyStories corpus is
+not redistributed; see the [upstream dataset](https://huggingface.co/datasets/adam89/TinyStoriesChinese)
+and its license terms.
 
 ## Autonomous iteration
 
@@ -119,14 +146,13 @@ logit argmax:       128 / 128 steps
 - Vivado and Vivado HLS 2018.2, with PYNQ-Z2 board files installed.
 - PYNQ-Z2 running the PYNQ 2.5 image for the measured runtime.
 - Host Python with the dependencies in `requirements-host.txt`.
-- A checkout of [ModenCn/tinyllamas-zh](https://github.com/ModenCn/tinyllamas-zh)
-  containing the Q6W artifact and the PyTorch reference implementation. The
-  companion checkout and this project can sit side by side:
+- The Q6W artifacts and PyTorch reference benchmark are included; no companion
+  checkout is needed for the standard flow.
 
 ```text
-workspace/
-  LLM-PYNQ/q6w_gemv/
-  TinyLLMStory-zh/
+LLM-PYNQ/q6w_gemv/
+  quantization/artifacts/
+  training/checkpoints/
 ```
 
 Create a host environment from the project root:
@@ -140,8 +166,7 @@ python -m pip install -r requirements-host.txt
 ### Prepare the golden request
 
 ```powershell
-$modelRepo = (Resolve-Path "..\..\TinyLLMStory-zh").Path
-python scripts\prepare_e2e.py --model-repo $modelRepo --linear-mode ps `
+python scripts\prepare_e2e.py --linear-mode ps `
   --max-new-tokens 128 --min-new-tokens 4 `
   --out-dir build\autonomous_hls\e2e128
 python scripts\generate_hls_layout.py `
@@ -225,12 +250,21 @@ reporting its throughput; it is not yet board-validated.
 | `scripts/build_autonomous_*.tcl` | HLS and Vivado overlay build flows |
 | `scripts/prepare_*.py` | Golden requests, model layout, and simulation inputs |
 | `scripts/deploy_*.py`, `autonomous_board.py` | Board deployment and runtime |
+| `quantization/artifacts/` | Q6W baseline/QAT weights and manifests |
+| `training/checkpoints/` | FP32 starting point and QAT master checkpoints |
+| `training/` | QAT, data preparation, validation, and training source |
+| `docs/Q6_QUANTIZATION.md` | Q6W format, hashes, and evaluation results |
+| `docs/RTL_REFERENCE.md` | Model topology, tensor shapes, and reference equations |
 | `build/` | Generated projects, model images, bitstreams, and reports; Git-ignored |
 
 ## License and attribution
 
-This repository's source code and RTL are licensed under the MIT License. The
-model, checkpoint, tokenizer, and training data are not included and retain
-their own terms. The reference model implementation and Q6W format come from
-[ModenCn/tinyllamas-zh](https://github.com/ModenCn/tinyllamas-zh); see that
-project for license and model/data provenance.
+This repository's original RTL and source code are licensed under the MIT
+License. Most vendored training sources retain their MIT attribution in
+`training/LICENSE`;
+`training/tokenizer.py` has a separate Meta Llama 2 Community License notice
+documented in `training/NOTICE.md` and `training/LLAMA2_LICENSE.txt`. The Q6W weights and trained SentencePiece
+model retain the model project's MIT notice in `quantization/LICENSE`. The raw
+training corpus is not included and remains subject to its separate dataset
+license. The upstream model project is
+[ModenCn/tinyllamas-zh](https://github.com/ModenCn/tinyllamas-zh).

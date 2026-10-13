@@ -9,17 +9,15 @@ from pathlib import Path
 def main():
     project_dir = Path(__file__).resolve().parents[1]
     parser = argparse.ArgumentParser(description="Prepare a Q6 TinyLLM PYNQ end-to-end request and PyTorch golden")
-    default_model_repo = Path(os.environ.get(
-        "TINYLLM_MODEL_REPO", project_dir.parent.parent / "TinyLLMStory-zh"
-    ))
+    default_model_repo = Path(os.environ.get("TINYLLM_MODEL_REPO", project_dir))
     parser.add_argument("--model-repo", type=Path, default=default_model_repo,
-                        help="companion TinyLLMStory-zh checkout")
+                        help="model package root (defaults to this project)")
     parser.add_argument("--weights", type=Path,
-                        help="Q6W weights (defaults to the companion repo artifact)")
+                        help="Q6W weights (defaults to this repository's QAT artifact)")
     parser.add_argument("--manifest", type=Path,
-                        help="Q6W manifest (defaults to the companion repo artifact)")
+                        help="Q6W manifest (defaults to this repository's QAT manifest)")
     parser.add_argument("--checkpoint", type=Path,
-                        help="source PyTorch checkpoint; defaults to manifest path or model-repo/ckpt.pt")
+                        help="source PyTorch checkpoint; defaults to the path recorded in the manifest")
     parser.add_argument("--tokenizer", type=Path,
                         help="SentencePiece model (defaults to model-repo/tok4096.model)")
     parser.add_argument("--out-dir", type=Path, default=project_dir / "build" / "e2e")
@@ -57,16 +55,40 @@ def main():
     args.out_dir.mkdir(parents=True, exist_ok=True)
 
     manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
-    manifest_checkpoint = Path(manifest["source_checkpoint"])
-    if not manifest_checkpoint.is_absolute():
-        manifest_checkpoint = model_repo / manifest_checkpoint
-    checkpoint_path = args.checkpoint or (
-        manifest_checkpoint if manifest_checkpoint.is_file() else model_repo / "ckpt.pt"
-    )
-    if not checkpoint_path.is_file():
-        raise FileNotFoundError(
-            "Source checkpoint not found; pass --checkpoint or provide model-repo/ckpt.pt"
+    checkpoint_path = args.checkpoint
+    if checkpoint_path is None:
+        manifest_checkpoint = Path(manifest["source_checkpoint"])
+        candidates = [
+            manifest_checkpoint if manifest_checkpoint.is_absolute() else model_repo / manifest_checkpoint,
+            model_repo / "training" / "checkpoints" / manifest_checkpoint.name,
+            model_repo / "ckpt.pt",
+        ]
+        checkpoint_path = next(
+            (
+                candidate
+                for candidate in candidates
+                if candidate.is_file()
+                and sha256_file(candidate) == manifest["source_checkpoint_sha256"]
+            ),
+            None,
         )
+        if checkpoint_path is None:
+            checkpoint_dir = model_repo / "training" / "checkpoints"
+            if checkpoint_dir.is_dir():
+                checkpoint_path = next(
+                    (
+                        candidate
+                        for candidate in checkpoint_dir.glob("*.pt")
+                        if sha256_file(candidate) == manifest["source_checkpoint_sha256"]
+                    ),
+                    None,
+                )
+    if checkpoint_path is None:
+        raise FileNotFoundError(
+            "Source checkpoint not found or SHA-256 mismatched; pass --checkpoint"
+        )
+    if not checkpoint_path.is_file():
+        raise FileNotFoundError("Source checkpoint not found: {}".format(checkpoint_path))
     if sha256_file(checkpoint_path) != manifest["source_checkpoint_sha256"]:
         raise ValueError("Q6 source checkpoint SHA-256 does not match its manifest")
     checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=True)

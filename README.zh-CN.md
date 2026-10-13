@@ -10,8 +10,8 @@
 请求，PL（可编程逻辑）接管 prompt prefill 和完整的自回归解码循环。目前已
 实现并实测超过 **200 tokens/s**，是一套可检查、可复现的 FPGA 推理工程。
 
-仓库不包含模型权重、checkpoint、tokenizer 或训练数据。模型文件和使用条款
-请查看[配套模型仓库](https://github.com/ModenCn/tinyllamas-zh)。
+仓库包含该模型的 Q6W 部署权重及格式清单、SentencePiece tokenizer、FP32
+训练 checkpoint，以及 Q6W 感知训练与评估代码。原始训练语料不在仓库中。
 
 ## 实测结果
 
@@ -35,6 +35,32 @@
 2018.2 routed setup slack 为 +0.020 ns、hold slack 为 +0.014 ns，且没有失败
 端点。代码中还有 K/V 并行实验版本，它通过了 HLS C 仿真和 Vivado 时序签核，
 但**尚未完成板测**，因此不计入上面的成绩。
+
+## 模型权重与训练产物
+
+这里使用的是 TinyLLMStory-zh 的定制 checkpoint，不是未经修改的原版权重。
+部署格式为 signed-int6 weight-only Q6W，每输出行带 FP32 scale，RMSNorm 参数
+仍为 FP32：
+
+| 文件 | 来源 step | SHA-256 | 用途 |
+| --- | ---: | --- | --- |
+| `quantization/artifacts/tinyllamas_zh_story_q6w_qat_lr1e6.bin` | 25,000 | `ddeaa72c5923f2c445a7543cf53dc13dffc674f53f49f822c0653ef6735c4c90` | QAT 权重，默认部署版本 |
+| `quantization/artifacts/tinyllamas_zh_story_q6w.bin` | 23,900 | `4edc130ef84cbb4450667a3e74ad5f8403608b3f90247256c006ec3604c7a0bf` | QAT 前基线，用于 A/B 比较 |
+
+每个 `.bin` 都有配套 JSON 清单，描述47个 tensor 的顺序、shape、偏移和行
+scale。两个二进制文件大小均为1,130,816字节，约为 FP32 唯一权重体积的
+5.12倍压缩。仓库也包含 `tok4096.model`。`training/checkpoints/` 中的是 FP32
+训练 checkpoint；QAT checkpoint 是训练用 master/优化器状态，**不是** PL 要
+加载的 packed `.bin`。
+
+QAT 在每次前向中对权重做逐行 Q6 fake quantization，并用 identity STE 反向传播。
+相同50个 masked validation batch 上，导出的 Q6 loss 从2.203846降到2.193370
+（约0.48%）；生成停止统计相近（EOS/cap 为121/7与122/6）。这说明该评估集
+上的量化误差补偿，不代表普遍的故事质量提升。格式、哈希和详细结果见
+[Q6W 文档](docs/Q6_QUANTIZATION.md)，训练来源与命令见
+[`training/README.md`](training/README.md)。训练语料不随仓库发布；请查看
+[上游 TinyStoriesChinese 数据集](https://huggingface.co/datasets/adam89/TinyStoriesChinese)
+及其许可。
 
 ## 自主迭代记录
 
@@ -106,13 +132,12 @@ Logit argmax：        128 / 128 步匹配
 - Vivado 和 Vivado HLS 2018.2，并安装 PYNQ-Z2 板卡文件。
 - PYNQ-Z2 运行 PYNQ 2.5 镜像，以复现当前实测运行环境。
 - Host Python 环境及 `requirements-host.txt` 中的依赖。
-- 配套的 [ModenCn/tinyllamas-zh](https://github.com/ModenCn/tinyllamas-zh)
-  仓库，提供 Q6W 模型文件和 PyTorch 参考实现。两个仓库可并排放置：
+- Q6W 权重和 PyTorch 参考 benchmark 已包含在本仓库，标准流程无需另行克隆模型仓库。
 
 ```text
-workspace/
-  LLM-PYNQ/q6w_gemv/
-  TinyLLMStory-zh/
+LLM-PYNQ/q6w_gemv/
+  quantization/artifacts/
+  training/checkpoints/
 ```
 
 在工程目录下创建 Python 环境：
@@ -126,8 +151,7 @@ python -m pip install -r requirements-host.txt
 ### 准备 golden 请求
 
 ```powershell
-$modelRepo = (Resolve-Path "..\..\TinyLLMStory-zh").Path
-python scripts\prepare_e2e.py --model-repo $modelRepo --linear-mode ps `
+python scripts\prepare_e2e.py --linear-mode ps `
   --max-new-tokens 128 --min-new-tokens 4 `
   --out-dir build\autonomous_hls\e2e128
 python scripts\generate_hls_layout.py `
@@ -207,11 +231,18 @@ $env:AUTONOMOUS_PARALLEL_KV = "1"
 | `scripts/build_autonomous_*.tcl` | HLS 和 Vivado overlay 构建流程 |
 | `scripts/prepare_*.py` | Golden 请求、模型布局和仿真输入准备 |
 | `scripts/deploy_*.py`, `autonomous_board.py` | 开发板部署与运行 |
+| `quantization/artifacts/` | Q6W 基线/QAT 权重与格式清单 |
+| `training/checkpoints/` | FP32 起点与 QAT master checkpoint |
+| `training/` | QAT、数据准备、验证和训练代码 |
+| `docs/Q6_QUANTIZATION.md` | Q6W 格式、哈希和量化评估结果 |
+| `docs/RTL_REFERENCE.md` | 模型拓扑、tensor shape 和参考公式 |
 | `build/` | 自动生成的工程、模型映像、bitstream 和报告；Git 忽略 |
 
 ## 许可证与模型来源
 
-本仓库 RTL 与源码使用 MIT License。模型、checkpoint、tokenizer 和训练数据
-不包含在本仓库中，仍受各自条款约束。参考模型实现和 Q6W 格式来自
-[ModenCn/tinyllamas-zh](https://github.com/ModenCn/tinyllamas-zh)；模型及数据
-来源和许可请以该项目说明为准。
+本仓库自有 RTL 和源码使用 MIT License。大部分 vendored 训练源码保留
+`training/LICENSE` 中的 MIT 署名；`training/tokenizer.py` 另受 Meta Llama 2
+Community License 约束，见 `training/NOTICE.md` 与 `training/LLAMA2_LICENSE.txt`。Q6W 权重和训练得到的
+SentencePiece 模型保留 `quantization/LICENSE` 中的模型项目 MIT 声明。原始训练
+语料不包含在仓库中，仍受其单独数据许可约束。上游模型项目为
+[ModenCn/tinyllamas-zh](https://github.com/ModenCn/tinyllamas-zh)。

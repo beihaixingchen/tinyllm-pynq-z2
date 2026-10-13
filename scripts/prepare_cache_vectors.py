@@ -29,15 +29,15 @@ def write_hex(path, data):
 
 
 def main():
-    workspace = Path(__file__).resolve().parents[3]
-    artifact_dir = workspace / "TinyLLMStory-zh" / "quantization" / "artifacts"
+    project_dir = Path(__file__).resolve().parents[1]
+    artifact_dir = project_dir / "quantization" / "artifacts"
     manifest = json.loads(
         (artifact_dir / (ARTIFACT_NAME + ".json")).read_text(encoding="utf-8")
     )
     blob = (artifact_dir / (ARTIFACT_NAME + ".bin")).read_bytes()
     entries = {item["name"]: item for item in manifest["tensors"]}
 
-    out_dir = Path(__file__).resolve().parents[1] / "build" / "cached_vectors"
+    out_dir = project_dir / "build" / "cached_vectors"
     args_parser = argparse.ArgumentParser(description="Prepare PL weight-cache vectors")
     args_parser.add_argument("--out-dir", type=Path, default=out_dir)
     args_parser.add_argument("--include-qkv", action="store_true")
